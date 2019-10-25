@@ -23,12 +23,12 @@ void display_matrix(double*** wij,  int layer_sizes[] , int number_of_tables){
 
 
 void display_tresholds(double** tresholds,  int layer_sizes[] , int number_of_layers){
-    for (int n=0 ; n<number_of_layers ; n++){
-            for(int i=0; i<layer_sizes[n] ; i++){
-                printf("%lf\t",tresholds[n][i]);
-            }
-            printf("\n");
+    for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
+        for(int i=0 ; i<layer_sizes[n+1] ; i++){
+            printf("%lf\t",tresholds[n][i]);
         }
+        printf("\n");
+    }
 }
 
 double*** init_nn_weights(int layer_sizes[], int number_of_tables){
@@ -55,30 +55,7 @@ double*** init_nn_weights(int layer_sizes[], int number_of_tables){
 
 double** init_nn_tresholds(int layer_sizes[], int number_of_layers){                  //units of input layer are not gonna have tresholds, because we dont need them 
 
-    double** tresholds = (double**)malloc(sizeof(double*)*number_of_layers);
-    for(int n=1 ; n<number_of_layers ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
-        tresholds[n]= (double*) malloc(sizeof(double)*layer_sizes[n]);              //cada posicion de la tabla apunta a otra tabla con sizes[i]+1 elementos
-    }
-    for(int n=1 ; n<number_of_layers ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
-        for(int i ; i<layer_sizes[n] ; i++){
-            tresholds[n][i]=(double)rand()/RAND_MAX*2.0-1.0;
-        }
-    }
-
-    return tresholds;
-}
-
-int main(){
-    srand ( time ( NULL ) ) ;
-    int layer_sizes[] = {4,10,20,30,1};
-    int number_of_layers=(sizeof(layer_sizes)/sizeof(layer_sizes[0]));    //descomptem la taula final (q seria la del node final)
-    int number_of_tables=number_of_layers-1;
-
-    double*** wij = init_nn_weights(layer_sizes,number_of_tables);
-    //double** nn_tresholds= init_nn_tresholds(layer_sizes,number_of_layers);
-    //display_matrix(wij,layer_sizes,number_of_tables);
-
-    double** tresholds = (double**)malloc(sizeof(double*)*number_of_layers-1);
+   double** tresholds = (double**)malloc(sizeof(double*)*number_of_layers-1);
     
 
     for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
@@ -91,13 +68,19 @@ int main(){
         }
     }
 
-    for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
-        for(int i=0 ; i<layer_sizes[n+1] ; i++){
-            printf("%lf\t",tresholds[n][i]);
-        }
-        printf("\n");
-    }
+    return tresholds;
+}
 
-    //display_tresholds(nn_tresholds,layer_sizes,number_of_layers);
+int main(){
+    srand ( time ( NULL ) ) ;
+    int layer_sizes[] = {2,4,5,1};
+    int number_of_layers=(sizeof(layer_sizes)/sizeof(layer_sizes[0]));    //descomptem la taula final (q seria la del node final)
+    int number_of_tables=number_of_layers-1;
+
+    double*** wij = init_nn_weights(layer_sizes,number_of_tables);
+    double** nn_tresholds= init_nn_tresholds(layer_sizes,number_of_layers);
+    display_matrix(wij,layer_sizes,number_of_tables);
+    printf("\n----------------------------------------------------------------------------------\n");
+    display_tresholds(nn_tresholds,layer_sizes,number_of_layers);
     
 }
