@@ -1,28 +1,4 @@
-EJEMPLO DE OUTPUT:
-
-RED NEURONAL:  int layer_sizes[] = {2,4,5,1};
-
-
-LISTA DE MATRICES:
-
--0.043586 -0.305786 
--0.896997 -0.867643 
--0.780929 -0.051129 
--0.441686 0.274281 
-
-0.721498 0.232500 0.004520 0.490547 
--0.724020 -0.214633 0.833682 0.274095 
--0.650029 -0.048221 -0.690633 0.751255 
--0.359987 -0.853894 -0.550568 0.567556 
--0.936772 0.839958 -0.218107 -0.145739 
-
--0.160765 -0.273221 0.758437 0.795650 0.420992 
-
-
-----------------------------------------------------------------------------------
-
-LISTA DE TRSHOLDS POR CADA CAPA:
-
-0.861440        0.928007        0.640063        -0.189689
--0.513679       -0.085656       -0.468191       0.718821        0.918864
--0.977644
+Feedforward seems fine
+It is important to denote that:
+  - nn_tresholds[0][i]: will return the tresholds of each neuron of layer 1. Layer 1 is the one after input layer.
+  - The same with nn_feed_forward, nn_descent_gradient

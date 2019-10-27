@@ -210,7 +210,7 @@ int main(){
     //display_matrix(wij,layer_sizes,number_of_tables);
     //printf("\n----------------------------------------------------------------------------------\n");
     
-    feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,1,3);
+    feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(1,(double)0,(double)100,(double)0,(double)1),scale_data(3,(double)0,(double)100,(double)0,(double)1));
     //error back propagation is pending
 
    int i=0;
