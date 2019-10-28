@@ -191,6 +191,8 @@ double* error_back_propagation(double*** wij,double** nn_tresholds,double** nn_f
     }
      printf("%lf",nn_descent_gradient[number_of_layers_except_output_layer-1][0]);
 
+     //I have the first formula, but now we have to do the back-propagation to the rest of the network
+
 }
 
 /*
