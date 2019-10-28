@@ -180,6 +180,19 @@ double* feed_forward_algorythm(double*** wij,double** nn_tresholds,double** nn_f
 
 }
 
+double* error_back_propagation(double*** wij,double** nn_tresholds,double** nn_feed_forward,double** nn_descent_gradient,int layer_sizes[],int number_of_layers_except_output_layer,double expected_result){
+    //first we calculate the propagation of the output layer for eahc neuron of it
+    double* propagation_output_layer;
+    //double* result=nn_feed_forward[2];    int layer_sizes[] = {2,10,15,1}; la posicion 2 seria el ultimo, pq la input layer no cuenta
+    double* result=nn_feed_forward[number_of_layers_except_output_layer-1]; //result is an araay because there could be more than one unit in the output layer
+
+    for(int i=0 ; i<layer_sizes[number_of_layers_except_output_layer] ; i++){
+        nn_descent_gradient[number_of_layers_except_output_layer-1][i]=result[i]*((double)1-result[i])*(result[i]-expected_result);
+    }
+     printf("%lf",nn_descent_gradient[number_of_layers_except_output_layer-1][0]);
+
+}
+
 /*
 Como siempre, init_nn_feed_forward o init_nn_descent_gradient, el retorno en la posicion 0, 
 Corresponde a valores de la siguiente capa de la input layer
@@ -212,7 +225,7 @@ int main(){
     
     feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(1,(double)0,(double)100,(double)0,(double)1),scale_data(3,(double)0,(double)100,(double)0,(double)1));
     //error back propagation is pending
-
+    error_back_propagation(wij,nn_feed_forward,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scale_data(3,(double)0,(double)100,(double)0,(double)1));
    int i=0;
    char line[1024];
     while (fgets(line, 1024, stream))
