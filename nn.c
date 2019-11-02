@@ -11,7 +11,7 @@ typedef struct neuron_t
 
 };
 */
-const double learning_rate=0.001;
+const double learning_rate=0.01;
 const double momentum=0.001;
 
 double sigmoid(double x)
@@ -331,14 +331,18 @@ int main(){
         
         double scaled_val1 = scale_data(val1,(double)0,(double)100,(double)0,(double)1);
         double scaled_val2 = scale_data(val2,(double)0,(double)100,(double)0,(double)1);
-        double scaled_result = scale_data(result,(double)0,(double)100,(double)0,(double)1);
-
+        double scaled_result = scale_data(result,(double)0,(double)10000,(double)0,(double)100);
+        
+        printf("%lf\t%lf\t%lf\n",scaled_val1,scaled_val2,scaled_result);
         feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scaled_val1,scaled_val2);
         error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scaled_result);
     }
 
     display_matrix(wij,layer_sizes,number_of_tables);
-    printf("\n%lf\n",feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(0,(double)0,(double)100,(double)0,(double)1),scale_data(0,(double)0,(double)100,(double)0,(double)1))[0]);
+    double val1 = scale_data(val1,(double)0,(double)100,(double)0,(double)1);
+    double val2 = scale_data(val2,(double)0,(double)100,(double)0,(double)1);
+    double s = feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,val1,val2)[0];
+    printf("\n%lf\n",unscale_data(s,0,1000,0,100));
 
 
 }
