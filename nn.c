@@ -337,7 +337,8 @@ int main(){
         error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scaled_result);
     }
 
-    printf("%lf",feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(0,(double)0,(double)100,(double)0,(double)1),scale_data(0,(double)0,(double)100,(double)0,(double)1))[0]);
+    display_matrix(wij,layer_sizes,number_of_tables);
+    printf("\n%lf\n",feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(0,(double)0,(double)100,(double)0,(double)1),scale_data(0,(double)0,(double)100,(double)0,(double)1))[0]);
 
 
 }
