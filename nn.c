@@ -11,6 +11,9 @@ typedef struct neuron_t
 
 };
 */
+const double learning_rate=0.001;
+const double momentum=0.001;
+
 double sigmoid(double x)
 {
      double exp_value;
@@ -52,7 +55,7 @@ void display_tresholds(double** tresholds,  int layer_sizes[] , int number_of_la
         for(int i=0 ; i<layer_sizes[n+1] ; i++){
             printf("%lf\t",tresholds[n][i]);
         }
-        printf("\n");
+        printf("\n\n");
     }
 }
 
@@ -78,6 +81,28 @@ double*** init_nn_weights(int layer_sizes[], int number_of_tables){
     return wij;
 }
 
+double*** init_nn_weights_with_zeros(int layer_sizes[], int number_of_tables){
+
+    double*** wij = (double***)malloc(sizeof(double**)*number_of_tables);
+    
+    for (int n=0 ; n<number_of_tables ; n++){
+        wij[n]= (double**) malloc(sizeof(double**)*layer_sizes[n]);         //creo cada tabla que apuntara a otra tabla con doubles
+    }
+    for (int n=0 ; n<number_of_tables ; n++){
+        for(int i=0; i<layer_sizes[n+1]; i++){                                //creamos tabla que guarde tantas posiciones como tablas pueda tener!
+            wij[n][i]= (double*) malloc(sizeof(double*)*layer_sizes[n]); //cada posicion de la tabla apunta a otra tabla con sizes[i]+1 elementos
+        }
+    }
+    for (int n=0 ; n<number_of_tables; n++){
+        for(int i=0; i<layer_sizes[n+1] ; i++){                               //para cada una de las tablas reservare espacio para los sizes[i+1] elementos
+            for(int j=0; j<layer_sizes[n] ; j++){                          //rellenamos cada uno de esos [i+1] elementos
+                wij[n][i][j]= (double)0;
+            }
+        }
+    }
+    return wij;
+}
+
 double** init_nn_tresholds(int layer_sizes[], int number_of_layers){                  //units of input layer are not gonna have tresholds, because we dont need them 
 
    double** tresholds = (double**)malloc(sizeof(double*)*number_of_layers-1);
@@ -95,6 +120,25 @@ double** init_nn_tresholds(int layer_sizes[], int number_of_layers){            
 
     return tresholds;
 }
+
+double** init_nn_tresholds_with_zeros(int layer_sizes[], int number_of_layers){                  //units of input layer are not gonna have tresholds, because we dont need them 
+
+   double** tresholds = (double**)malloc(sizeof(double*)*number_of_layers-1);
+    
+
+    for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
+        tresholds[n]= (double*) malloc(sizeof(double)*layer_sizes[n+1]);              //cada posicion de la tabla apunta a otra tabla con sizes[i]+1 elementos
+    }
+
+    for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
+        for(int i=0 ; i<layer_sizes[n+1] ; i++){
+            tresholds[n][i]=(double)0;
+        }
+    }
+
+    return tresholds;
+}
+
 
 double** init_nn_feed_forward(int layer_sizes[], int number_of_layers){                  //units of input layer are not gonna have tresholds, because we dont need them 
 
@@ -142,11 +186,13 @@ double unscale_data(double s,double Xmin,double Xmax, double Smin, double Smax){
 
 double* feed_forward_algorythm(double*** wij,double** nn_tresholds,double** nn_feed_forward,int layer_sizes[],int number_of_layers_except_input_layer ,int number_elem_in_pattern,...){
     va_list list;
+    double val;
     double* input_layer_activation; //array that will store each of the activations of the input layer (the patterns) 
     input_layer_activation=malloc(sizeof(double)*number_elem_in_pattern);
     va_start(list,number_elem_in_pattern);
     for (int i=0;   i<number_elem_in_pattern ; i++){
-        input_layer_activation[i]= va_arg(list, int);
+        input_layer_activation[i]= va_arg(list, double);
+        val=input_layer_activation[i];
     }
 
     //first step is to calculate  nn_feed_forward[0] which depends on input_layer_activation
@@ -173,21 +219,24 @@ double* feed_forward_algorythm(double*** wij,double** nn_tresholds,double** nn_f
            } 
            hi=hi-nn_tresholds[n][i];
            nn_feed_forward[n][i]=sigmoid(hi);
-           printf("FeedForward layer: %d, neuron: %d, feedforward: %lf\n", n+1,i,nn_feed_forward[n][i]);
         }
-        printf("\n---------------------------------------------\n");
     }
 
 }
 
-double* error_back_propagation(double*** wij,double** nn_tresholds,double** nn_feed_forward,double** nn_descent_gradient,int layer_sizes[],int number_of_layers_except_output_layer,double expected_result){
+void error_back_propagation(double*** wij,double*** changes_before_weights,double** changes_before_tresholds,double** nn_tresholds,double** nn_feed_forward,double** nn_descent_gradient,int layer_sizes[],int number_of_layers_except_output_layer,double expected_result){
     //first we calculate the propagation of the output layer for eahc neuron of it
     double* propagation_output_layer;
+    double change;
+    double sum=0;
+
     //double* result=nn_feed_forward[2];    int layer_sizes[] = {2,10,15,1}; la posicion 2 seria el ultimo, pq la input layer no cuenta
     double* result=nn_feed_forward[number_of_layers_except_output_layer-1]; //result is an araay because there could be more than one unit in the output layer
     if (result[0] == expected_result){  //CONVERT TO LIST AND COMPARE!!
-        return NULL;
+        return;
     }
+
+    //display_tresholds(nn_descent_gradient,layer_sizes ,number_of_layers_except_output_layer);
     //printf("\n%lf\n",result[0]);
     //printf("\n%lf\n",expected_result);
     for(int i=0 ; i<layer_sizes[number_of_layers_except_output_layer] ; i++){
@@ -195,8 +244,39 @@ double* error_back_propagation(double*** wij,double** nn_tresholds,double** nn_f
     }
      //I have the first formula, but now we have to do the back-propagation to the rest of the network  ;   nn_descent_gradient[number_of_layers_except_output_layer-1][0]
     //backpropagation:
-    for (int n=number_of_layers_except_output_layer-1 ; n>0 ; n--){ //per each layer
-        
+    for (int n=number_of_layers_except_output_layer-1 ; n>0 ; n--){ //per each layer {2,10,15,1}; 
+        for (int j=0 ; j<layer_sizes[n] ; j++){
+            //printf("%lf\t",nn_feed_forward[n-1][j]);
+            sum=0;
+            for (int i=0 ; i<layer_sizes[n+1]   ;   i++ ){
+                sum = sum + nn_descent_gradient[n][i]*wij[n][i][j]; 
+            }
+            nn_descent_gradient[n-1][j] = nn_feed_forward[n-1][j]*(1-nn_feed_forward[n-1][j])*sum;
+            //printf("capa %d, neurona %d : %lf",n-1,j,nn_descent_gradient[n-1][j]);
+            //printf("\n");
+        }
+        //printf("\n");
+    }
+    //lets update weights
+    for (int n=number_of_layers_except_output_layer-1 ; n>=0 ; n--){
+        for (int i=0 ; i<layer_sizes[n+1] ; i++){
+                for (int j=0 ; j<layer_sizes[n] ; j++){
+                    change=(-1)*learning_rate*nn_descent_gradient[n][i]*nn_feed_forward[n][j]+momentum*changes_before_weights[n][i][j];
+                    wij[n][i][j]=wij[n][i][j]+change;
+                    changes_before_weights[n][i][j]=change;
+                }           
+                 //printf("%lf\t",nn_descent_gradient[n][i]);
+        }
+        //printf("\n\n");
+    }
+
+    change=0;
+    for (int n=number_of_layers_except_output_layer-1 ; n>=0 ; n--){
+        for(int i=0 ; i<layer_sizes[n+1] ; i++){
+            change=learning_rate*nn_descent_gradient[n][i]+momentum*changes_before_tresholds[n][i];
+            nn_tresholds=nn_tresholds[n][i]+change;
+            changes_before_tresholds[n][i]=change;
+        }
     }
 
 }
@@ -214,7 +294,7 @@ La capa nn
 */
 int main(){
     srand ( time ( NULL ) ) ;
-    int layer_sizes[] = {2,10,15,20,1};    //2 values to multiply, one to return the result of the multi operation
+    int layer_sizes[] = {2,10,15,1};    //2 values to multiply, one to return the result of the multi operation
     int number_of_layers=(sizeof(layer_sizes)/sizeof(layer_sizes[0]));    //descomptem la taula final (q seria la del node final)
     int number_of_tables=number_of_layers-1;
     char dataset[] = "test.csv";
@@ -225,15 +305,20 @@ int main(){
     Initialize data structure
     */
     double*** wij = init_nn_weights(layer_sizes,number_of_tables);
+    double*** changes_before_weights = init_nn_weights_with_zeros(layer_sizes,number_of_tables);
     double** nn_tresholds= init_nn_tresholds(layer_sizes,number_of_layers);
+    double** changes_before_tresholds= init_nn_tresholds_with_zeros(layer_sizes,number_of_layers);
     double** nn_feed_forward= init_nn_feed_forward(layer_sizes,number_of_layers);
     double** nn_descent_gradient= init_nn_feed_forward(layer_sizes,number_of_layers);
     //display_matrix(wij,layer_sizes,number_of_tables);
     //printf("\n----------------------------------------------------------------------------------\n");
-    
-    feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(1,(double)0,(double)100,(double)0,(double)1),scale_data(3,(double)0,(double)100,(double)0,(double)1));
+    //display_tresholds(nn_tresholds,layer_sizes,number_of_layers);
+    double param1=scale_data(90,(double)0,(double)100,(double)0,(double)1);
+    double param2=scale_data(90,(double)0,(double)100,(double)0,(double)1);
+    feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,param1,param2);
+    //feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,3,1);
     //error back propagation is pending
-    error_back_propagation(wij,nn_feed_forward,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scale_data(3,(double)0,(double)100,(double)0,(double)1));
+    error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scale_data(1800,(double)0,(double)100,(double)0,(double)1));
    int i=0;
    char line[1024];
     while (fgets(line, 1024, stream))
