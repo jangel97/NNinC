@@ -11,7 +11,7 @@ typedef struct neuron_t
 
 };
 */
-const double learning_rate=0.01;
+const double learning_rate=0.1;
 const double momentum=0.001;
 
 double sigmoid(double x)
@@ -38,10 +38,12 @@ const char* getfield(char* line, int num)
 }
 
 void display_matrix(double*** wij,  int layer_sizes[] , int number_of_tables){
+    printf("---------------------------------------------");
     for (int n=0 ; n<number_of_tables ; n++){
             for(int i=0; i<layer_sizes[n+1] ; i++){
                 for (int j=0; j<layer_sizes[n] ; j++){
-                    printf("%lf ",(double)wij[n][i][j]);
+                    wij[n][i][j]=(double)rand()/RAND_MAX*2.0-1.0;
+                    printf("%lf\t",(double)wij[n][i][j]);
                 }
                 printf("\n");
             }
@@ -49,6 +51,16 @@ void display_matrix(double*** wij,  int layer_sizes[] , int number_of_tables){
         }
 }
 
+void ini_matrix(double*** wij,  int layer_sizes[] , int number_of_tables){
+    printf("---------------------------------------------");
+    for (int n=0 ; n<number_of_tables ; n++){
+            for(int i=0; i<layer_sizes[n+1] ; i++){
+                for (int j=0; j<layer_sizes[n] ; j++){
+                    wij[n][i][j]=(double)rand()/RAND_MAX*2.0-1.0;
+                }
+            }
+        }
+}
 
 void display_tresholds(double** tresholds,  int layer_sizes[] , int number_of_layers){
     for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
@@ -78,6 +90,15 @@ double*** init_nn_weights(int layer_sizes[], int number_of_tables){
             }
         }
     }
+
+        for (int n=0 ; n<number_of_tables ; n++){
+            for(int i=0; i<layer_sizes[n+1] ; i++){
+                for (int j=0; j<layer_sizes[n] ; j++){
+                    wij[n][i][j]=(double)rand()/RAND_MAX*2.0-1.0;
+                }
+            }
+        }
+
     return wij;
 }
 
@@ -132,7 +153,7 @@ double** init_nn_tresholds_with_zeros(int layer_sizes[], int number_of_layers){ 
 
     for(int n=0 ; n<number_of_layers-1 ; n++){                                         //creamos tabla que guarde tantas posiciones como tablas pueda tener!
         for(int i=0 ; i<layer_sizes[n+1] ; i++){
-            tresholds[n][i]=(double)0;
+            tresholds[n][i]=0;
         }
     }
 
@@ -234,6 +255,9 @@ void error_back_propagation(double*** wij,double*** changes_before_weights,doubl
 
     //double* result=nn_feed_forward[2];    int layer_sizes[] = {2,10,15,1}; la posicion 2 seria el ultimo, pq la input layer no cuenta
     double* result=nn_feed_forward[number_of_layers_except_output_layer-1]; //result is an araay because there could be more than one unit in the output layer
+    printf("\n---------\nexpected result: %lf",expected_result);
+    printf("nn result: %lf\n------------------\n",result[0]);
+
     if (result[0] == expected_result){  //CONVERT TO LIST AND COMPARE!!
         return;
     }
@@ -250,7 +274,7 @@ void error_back_propagation(double*** wij,double*** changes_before_weights,doubl
         for (int j=0 ; j<layer_sizes[n] ; j++){
             //printf("%lf\t",nn_feed_forward[n-1][j]);
             sum=0;
-            for (int i=0 ; i<layer_sizes[n+1]   ;   i++ ){
+            for (int i=0 ; i<layer_sizes[n+1]  ; i++ ){
                 sum = sum + nn_descent_gradient[n][i]*wij[n][i][j]; 
             }
             nn_descent_gradient[n-1][j] = nn_feed_forward[n-1][j]*(1-nn_feed_forward[n-1][j])*sum;
@@ -263,10 +287,13 @@ void error_back_propagation(double*** wij,double*** changes_before_weights,doubl
     for (int n=number_of_layers_except_output_layer-1 ; n>=0 ; n--){
         for (int i=0 ; i<layer_sizes[n+1] ; i++){
                 for (int j=0 ; j<layer_sizes[n] ; j++){
-                    change=(-1)*learning_rate*nn_descent_gradient[n][i]*nn_feed_forward[n][j]+momentum*changes_before_weights[n][i][j];
+                    change=(-1)*learning_rate*nn_descent_gradient[n][i]*nn_feed_forward[n][j]+momentum*changes_before_weights[n][i][j]*0;
                     wij[n][i][j]=wij[n][i][j]+change;
+                    //printf("%lf\t",wij[n][i][j]);
                     changes_before_weights[n][i][j]=change;
-                }           
+
+                }   
+                //printf("\n");        
                  //printf("%lf\t",nn_descent_gradient[n][i]);
         }
         //printf("\n\n");
@@ -296,7 +323,7 @@ La capa nn
 */
 int main(){
     srand ( time ( NULL ) ) ;
-    int layer_sizes[] = {2,10,15,1};    //2 values to multiply, one to return the result of the multi operation
+    int layer_sizes[] = {2,10,10,1};    //2 values to multiply, one to return the result of the multi operation
     int number_of_layers=(sizeof(layer_sizes)/sizeof(layer_sizes[0]));    //descomptem la taula final (q seria la del node final)
     int number_of_tables=number_of_layers-1;
     char dataset[] = "test.csv";
@@ -312,18 +339,10 @@ int main(){
     double** changes_before_tresholds= init_nn_tresholds_with_zeros(layer_sizes,number_of_layers);
     double** nn_feed_forward= init_nn_feed_forward(layer_sizes,number_of_layers);
     double** nn_descent_gradient= init_nn_feed_forward(layer_sizes,number_of_layers);
-    //display_matrix(wij,layer_sizes,number_of_tables);scale_data(1800,(double)0,(double)100,(double)0,(double)1)
-    //printf("\n----------------------------------------------------------------------------------\n");
-    //display_tresholds(nn_tresholds,layer_sizes,number_of_layers);
-    double param1=scale_data(90,(double)0,(double)100,(double)0,(double)1);
-    double param2=scale_data(90,(double)0,(double)100,(double)0,(double)1);
-    //feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,param1,param2);
-    //feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,3,1);
-    //error back propagation is pending
-    //error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scale_data(1800,(double)0,(double)100,(double)0,(double)1));
-   int i=0;
-   char line[1024];
-    while (fgets(line, 1024, stream))
+    ini_matrix(wij,layer_sizes,number_of_tables);
+    char line[1024];
+for(int i=0 ; i<10 ; i++){
+   while (fgets(line, 1024, stream))
     {
         double val1 = atof(getfield(strdup(line), 1));
         double val2 = atof(getfield(strdup(line), 2));
@@ -333,16 +352,31 @@ int main(){
         double scaled_val2 = scale_data(val2,(double)0,(double)100,(double)0,(double)1);
         double scaled_result = scale_data(result,(double)0,(double)10000,(double)0,(double)100);
         
-        printf("%lf\t%lf\t%lf\n",scaled_val1,scaled_val2,scaled_result);
+
+        //printf("%lf\t%lf\t%lf\n",scaled_val1,scaled_val2,scaled_result);
         feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scaled_val1,scaled_val2);
         error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scaled_result);
+        free(nn_feed_forward);
+        free(nn_descent_gradient);
+        nn_feed_forward= init_nn_feed_forward(layer_sizes,number_of_layers);
+        nn_descent_gradient= init_nn_feed_forward(layer_sizes,number_of_layers);
     }
+}
+ 
 
-    display_matrix(wij,layer_sizes,number_of_tables);
-    double val1 = scale_data(val1,(double)0,(double)100,(double)0,(double)1);
-    double val2 = scale_data(val2,(double)0,(double)100,(double)0,(double)1);
+    //display_matrix(wij,layer_val2sizes,number_of_tables);
+    //display_tresholds(nn_tresholds,layer_sizes,number_of_layers);
+    double val1 = scale_data(0,(double)0,(double)10,(double)0,(double)1);
+    double val2 = scale_data(0,(double)0,(double)10,(double)0,(double)1);
+
+    free(nn_feed_forward);
+    free(nn_descent_gradient);
+    nn_feed_forward= init_nn_feed_forward(layer_sizes,number_of_layers);
+    nn_descent_gradient= init_nn_feed_forward(layer_sizes,number_of_layers);   
     double s = feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,val1,val2)[0];
-    printf("\n%lf\n",unscale_data(s,0,1000,0,100));
-
+    //display_matrix(wij,layer_sizes,number_of_tables);
+    printf("\n%lf\n",unscale_data(s,0,100,0,1));
+    printf("------------------------------------------------------------------------------\n");
+    //display_matrix(wij,layer_sizes,number_of_tables);
 
 }
