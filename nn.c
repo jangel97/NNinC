@@ -222,6 +222,8 @@ double* feed_forward_algorythm(double*** wij,double** nn_tresholds,double** nn_f
         }
     }
 
+    return nn_feed_forward[number_of_layers_except_input_layer-1];
+
 }
 
 void error_back_propagation(double*** wij,double*** changes_before_weights,double** changes_before_tresholds,double** nn_tresholds,double** nn_feed_forward,double** nn_descent_gradient,int layer_sizes[],int number_of_layers_except_output_layer,double expected_result){
@@ -274,7 +276,7 @@ void error_back_propagation(double*** wij,double*** changes_before_weights,doubl
     for (int n=number_of_layers_except_output_layer-1 ; n>=0 ; n--){
         for(int i=0 ; i<layer_sizes[n+1] ; i++){
             change=learning_rate*nn_descent_gradient[n][i]+momentum*changes_before_tresholds[n][i];
-            nn_tresholds=nn_tresholds[n][i]+change;
+            nn_tresholds[n][i]=nn_tresholds[n][i]+change;
             changes_before_tresholds[n][i]=change;
         }
     }
@@ -310,15 +312,15 @@ int main(){
     double** changes_before_tresholds= init_nn_tresholds_with_zeros(layer_sizes,number_of_layers);
     double** nn_feed_forward= init_nn_feed_forward(layer_sizes,number_of_layers);
     double** nn_descent_gradient= init_nn_feed_forward(layer_sizes,number_of_layers);
-    //display_matrix(wij,layer_sizes,number_of_tables);
+    //display_matrix(wij,layer_sizes,number_of_tables);scale_data(1800,(double)0,(double)100,(double)0,(double)1)
     //printf("\n----------------------------------------------------------------------------------\n");
     //display_tresholds(nn_tresholds,layer_sizes,number_of_layers);
     double param1=scale_data(90,(double)0,(double)100,(double)0,(double)1);
     double param2=scale_data(90,(double)0,(double)100,(double)0,(double)1);
-    feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,param1,param2);
+    //feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,param1,param2);
     //feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,3,1);
     //error back propagation is pending
-    error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scale_data(1800,(double)0,(double)100,(double)0,(double)1));
+    //error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scale_data(1800,(double)0,(double)100,(double)0,(double)1));
    int i=0;
    char line[1024];
     while (fgets(line, 1024, stream))
@@ -330,13 +332,12 @@ int main(){
         double scaled_val1 = scale_data(val1,(double)0,(double)100,(double)0,(double)1);
         double scaled_val2 = scale_data(val2,(double)0,(double)100,(double)0,(double)1);
         double scaled_result = scale_data(result,(double)0,(double)100,(double)0,(double)1);
-        
-        /*
-            feedForward 
-        */
 
-       /*
-
-       */
+        feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scaled_val1,scaled_val2);
+        error_back_propagation(wij,changes_before_weights,changes_before_tresholds,nn_tresholds,nn_feed_forward,nn_descent_gradient,layer_sizes,number_of_tables,scaled_result);
     }
+
+    printf("%lf",feed_forward_algorythm(wij,nn_tresholds,nn_feed_forward,layer_sizes,number_of_tables,2,scale_data(0,(double)0,(double)100,(double)0,(double)1),scale_data(0,(double)0,(double)100,(double)0,(double)1))[0]);
+
+
 }
