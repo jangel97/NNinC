@@ -185,13 +185,19 @@ double* error_back_propagation(double*** wij,double** nn_tresholds,double** nn_f
     double* propagation_output_layer;
     //double* result=nn_feed_forward[2];    int layer_sizes[] = {2,10,15,1}; la posicion 2 seria el ultimo, pq la input layer no cuenta
     double* result=nn_feed_forward[number_of_layers_except_output_layer-1]; //result is an araay because there could be more than one unit in the output layer
-
+    if (result[0] == expected_result){  //CONVERT TO LIST AND COMPARE!!
+        return NULL;
+    }
+    //printf("\n%lf\n",result[0]);
+    //printf("\n%lf\n",expected_result);
     for(int i=0 ; i<layer_sizes[number_of_layers_except_output_layer] ; i++){
         nn_descent_gradient[number_of_layers_except_output_layer-1][i]=result[i]*((double)1-result[i])*(result[i]-expected_result);
     }
-     printf("%lf",nn_descent_gradient[number_of_layers_except_output_layer-1][0]);
-
-     //I have the first formula, but now we have to do the back-propagation to the rest of the network
+     //I have the first formula, but now we have to do the back-propagation to the rest of the network  ;   nn_descent_gradient[number_of_layers_except_output_layer-1][0]
+    //backpropagation:
+    for (int n=number_of_layers_except_output_layer-1 ; n>0 ; n--){ //per each layer
+        
+    }
 
 }
 
@@ -208,7 +214,7 @@ La capa nn
 */
 int main(){
     srand ( time ( NULL ) ) ;
-    int layer_sizes[] = {2,10,15,1};    //2 values to multiply, one to return the result of the multi operation
+    int layer_sizes[] = {2,10,15,20,1};    //2 values to multiply, one to return the result of the multi operation
     int number_of_layers=(sizeof(layer_sizes)/sizeof(layer_sizes[0]));    //descomptem la taula final (q seria la del node final)
     int number_of_tables=number_of_layers-1;
     char dataset[] = "test.csv";
